@@ -31,6 +31,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "NQueen"
             packageVersion = "1.0.0"
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
         }
     }
 }

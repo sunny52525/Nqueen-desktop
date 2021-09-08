@@ -1,18 +1,23 @@
+import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Modifier.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+
 
 @Composable
 fun MainScreen() {
@@ -20,15 +25,34 @@ fun MainScreen() {
     var gridSize by remember {
         mutableStateOf(8)
     }
-    Column {
-        Spacer(Modifier.height(20.dp))
+    var solutions by remember {
+        mutableStateOf(NQueenSolution.solve(gridSize))
+    }
+    var solutionShown by remember {
+        mutableStateOf(0)
+    }
+
+    Column(
+//        modifier = Modifier.verticalScroll(rememberScrollState())
+    ) {
+        Spacer(modifier = Modifier.height(20.dp))
         Heading()
+        Spacer(Modifier.height(20.dp))
+        Grid(gridSize, solutions[solutionShown],solutionShown)
         Spacer(Modifier.height(20.dp))
         Controller(gridSize, onGridChange = {
             gridSize = it
+            solutions = NQueenSolution.solve(it)
+            solutionShown = 0
+        }, onRunClicked = {
+            if (solutionShown + 1 == solutions.size) {
+                solutionShown = 0
+            } else {
+                solutionShown++
+            }
+        }, onResetClicked = {
+            solutionShown = 0
         })
-        Spacer(Modifier.height(20.dp))
-        Grid(gridSize, arrayListOf())
     }
 }
 
@@ -45,7 +69,7 @@ fun Heading() {
 }
 
 @Composable
-fun Controller(gridSize: Int, onGridChange: (Int) -> Unit) {
+fun Controller(gridSize: Int, onGridChange: (Int) -> Unit, onRunClicked: () -> Unit, onResetClicked: () -> Unit) {
 
 
     var dropDownExpanded by remember {
@@ -57,20 +81,17 @@ fun Controller(gridSize: Int, onGridChange: (Int) -> Unit) {
         modifier = Modifier.fillMaxWidth()
 
     ) {
-        Button(onClick = {
-
-        }, content = {
+        Button(onClick = onRunClicked, content = {
             Text(text = "Run")
         })
-        Button(onClick = {
-
-        }, content = {
+        Button(onClick = onResetClicked, content = {
             Text(text = "Reset")
         })
 
         Box(
             content = {
-                Column {
+                Column (modifier = Modifier.verticalScroll(rememberScrollState())
+                ){
                     Button(
                         onClick = {
                             dropDownExpanded = true
@@ -105,7 +126,7 @@ fun Controller(gridSize: Int, onGridChange: (Int) -> Unit) {
 
 
 @Composable
-fun Grid(gridSize: Int, solutions: ArrayList<ArrayList<Int>>) {
+fun Grid(gridSize: Int, solutions: ArrayList<Int>, solutionShown: Int) {
 
 
     Column(
@@ -114,13 +135,17 @@ fun Grid(gridSize: Int, solutions: ArrayList<ArrayList<Int>>) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Column(
+        Row(
             modifier = Modifier.border(width = 1.dp, color = Red)
         ) {
-            repeat(gridSize) {
-                Row {
-                    repeat(gridSize) {
-                        GridItem(White)
+            repeat(gridSize) { i ->
+                Column {
+                    repeat(gridSize) { j ->
+
+                        if (solutions[i] - 1 == j)
+                            GridItem(Green)
+                        else
+                            GridItem(White)
                     }
                 }
             }
@@ -128,6 +153,8 @@ fun Grid(gridSize: Int, solutions: ArrayList<ArrayList<Int>>) {
         }
 
 
+
+        Text(text = "Solution Number ${solutionShown + 1}",color = Black,fontWeight = FontWeight.Bold)
     }
 }
 

@@ -45,6 +45,28 @@ class NQueenSolution {
 
     companion object {
 
+        fun ArrayList<ArrayList<Int>>.toSolution(N: Int): ArrayList<Int> {
+            var result: ArrayList<Int> = arrayListOf()
+            repeat(N) {
+                result.add(0)
+            }
+
+            for (i in 0 until N) {
+
+                for (j in 0 until N) {
+                    if (this[j][i] == 1) {
+                        result[i] = j + 1
+                    }
+                }
+
+            }
+
+
+
+
+            return result
+
+        }
 
         fun checkSolutions(board: ArrayList<ArrayList<Int>>, N: Int): List<Pair<Int, Int>>? {
 
@@ -139,6 +161,22 @@ class NQueenSolution {
             return result?.distinct()
         }
 
+
+        fun canCheck(board: ArrayList<ArrayList<Int>>, N: Int): Boolean {
+
+            for (i in 0 until N) {
+                var contains = false
+                for (j in 0 until N) {
+                    if (board[i][j] == 1)
+                        contains = true
+                }
+
+                if (!contains)
+                    return false
+            }
+
+            return true
+        }
 
         fun isSafe(board: ArrayList<ArrayList<Int>>, col: Int, row: Int, N: Int): Boolean {
 

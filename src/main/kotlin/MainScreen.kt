@@ -1,8 +1,7 @@
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
@@ -16,26 +15,28 @@ import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun MainScreen() {
+fun MainScreen(gotoGame: () -> Unit) {
 
     var gridSize by remember {
         mutableStateOf(8)
     }
     var solutions: ArrayList<ArrayList<Int>> by remember {
-        mutableStateOf(arrayListOf())
+        mutableStateOf(NQueenSolution.solve(gridSize))
     }
     var solutionShown by remember {
         mutableStateOf(0)
     }
 
     Column(
-//        modifier = Modifier.verticalScroll(rememberScrollState())
+//        modifier = Modifier.animateContentSize()
     ) {
         Spacer(modifier = Modifier.height(20.dp))
         Heading()
@@ -47,19 +48,22 @@ fun MainScreen() {
             Grid(gridSize, null, solutionShown)
 
         Spacer(Modifier.height(20.dp))
-        Controller(gridSize, onGridChange = {
-            gridSize = it
-            solutions = NQueenSolution.solve(it)
-            solutionShown = 0
-        }, onRunClicked = {
-            if (solutionShown + 1 == solutions.size) {
+        Controller(gridSize,
+            onGridChange = {
+                gridSize = it
+                solutions = NQueenSolution.solve(it)
                 solutionShown = 0
-            } else {
-                solutionShown++
-            }
-        }, onResetClicked = {
-            solutionShown = 0
-        })
+            }, onRunClicked = {
+                if (solutionShown + 1 == solutions.size) {
+                    solutionShown = 0
+                } else {
+                    solutionShown++
+                }
+            }, onResetClicked = {
+                solutionShown = 0
+            }, gotoGame = {
+                gotoGame()
+            })
     }
 }
 
@@ -76,7 +80,11 @@ fun Heading() {
 }
 
 @Composable
-fun Controller(gridSize: Int, onGridChange: (Int) -> Unit, onRunClicked: () -> Unit, onResetClicked: () -> Unit) {
+fun Controller(
+    gridSize: Int, onGridChange: (Int) -> Unit, onRunClicked: () -> Unit,
+    gotoGame: () -> Unit,
+    onResetClicked: () -> Unit
+) {
 
 
     var dropDownExpanded by remember {
@@ -89,16 +97,21 @@ fun Controller(gridSize: Int, onGridChange: (Int) -> Unit, onRunClicked: () -> U
 
     ) {
         Button(onClick = onRunClicked, content = {
-            Text(text = "Run")
+            Text(text = "Next Solution")
         })
         Button(onClick = onResetClicked, content = {
             Text(text = "Reset")
         })
 
+        Button(onClick = gotoGame, content = {
+            Text(text = "Go to Game")
+        })
+
         Box(
             content = {
-                Column (modifier = Modifier.verticalScroll(rememberScrollState())
-                ){
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                ) {
                     Button(
                         onClick = {
                             dropDownExpanded = true
@@ -136,13 +149,13 @@ fun Controller(gridSize: Int, onGridChange: (Int) -> Unit, onRunClicked: () -> U
 fun Grid(gridSize: Int, solutions: ArrayList<Int>?, solutionShown: Int) {
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Row(
-            modifier = Modifier.border(width = 1.dp, color = Red)
+            modifier = Modifier.border(width = 1.dp, color = Red).animateContentSize()
         ) {
             repeat(gridSize) { i ->
                 Column {
@@ -189,5 +202,14 @@ fun GridItem(color: Color) {
             active = false
             false
         }
-    ))
+    )) {
+
+        if (color == Green)
+            Image(
+                painter = painterResource("queen.svg"),
+                contentDescription = "Idea logo",
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier.fillMaxSize()
+            )
+    }
 }

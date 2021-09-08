@@ -1,3 +1,6 @@
+import NQueenSolution.Companion.toSolution
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -6,23 +9,36 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 
 
+@ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
-fun MainScreenInteractive() {
+fun MainScreenInteractive(gotoSolution:()->Unit) {
     var grid: ArrayList<ArrayList<Int>> by remember {
         mutableStateOf(Constants.empty)
     }
 
+    var results: ArrayList<ArrayList<Int>> by remember {
+        mutableStateOf(NQueenSolution.solve(8))
+    }
+    var isDialog by remember {
+        mutableStateOf(false)
+    }
 
+    var dialogMessage by remember {
+        mutableStateOf("Uh Oh Try Again")
+    }
     var checkEnabled by remember {
         mutableStateOf(true)
     }
@@ -30,10 +46,14 @@ fun MainScreenInteractive() {
 
 
 
+
     Column {
+        Spacer(modifier = Modifier.height(20.dp))
+        Heading()
 
 
-        GridInteractive(gridSize = 8, grid = grid,
+        GridInteractive(
+            gridSize = 8, grid = grid,
             onBlockClicked = { i: Int, j: Int ->
                 println(grid.size)
                 printGrid(grid)
@@ -56,6 +76,17 @@ fun MainScreenInteractive() {
             }, undo = { i, j ->
                 grid[j][i] = 0
             })
+
+
+            AnimatedVisibility(isDialog){
+                Text(
+                    dialogMessage,
+                    color = Black,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
+
         Spacer(modifier = Modifier.height(20.dp))
 
 
@@ -89,8 +120,20 @@ fun MainScreenInteractive() {
                     grid2[it.first][it.second] = 2
                 }
 
+                if (results.contains(grid.toSolution(8))) {
+                    dialogMessage = "Woo Hoo, You're correct"
+                    isDialog = true
+                } else {
+                    dialogMessage = "Uh oh , Please try Again"
+                    isDialog = true
+                }
+
                 grid = grid2
+
+
                 println(grid.size)
+
+
 
 
                 checkEnabled = false
@@ -100,9 +143,7 @@ fun MainScreenInteractive() {
 
             Spacer(modifier = Modifier.width(20.dp))
 
-            Button(onClick = {
-
-            }, content = {
+            Button(onClick = gotoSolution, content = {
                 Text(text = "Goto Solutions")
             })
 
@@ -122,6 +163,7 @@ fun MainScreenInteractive() {
                 println(grid.size)
 
                 checkEnabled = true
+                isDialog = false
             }, content = {
                 Text(text = "Reset")
             })
@@ -273,4 +315,21 @@ fun GridItemInteractive(
                 )
             }
     }
+}
+
+
+@Composable
+fun Result(isVisible: Boolean, msg: String, onclose: () -> Unit) {
+
+    Dialog(visible = isVisible, content = {
+
+        Box(
+            modifier = Modifier.width(400.dp).height(300.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(msg, color = Black)
+        }
+    }, onCloseRequest = {
+        onclose()
+    })
 }

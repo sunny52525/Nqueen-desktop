@@ -1,19 +1,21 @@
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Modifier.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Black
 import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.Color.Companion.Red
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -25,8 +27,8 @@ fun MainScreen() {
     var gridSize by remember {
         mutableStateOf(8)
     }
-    var solutions by remember {
-        mutableStateOf(NQueenSolution.solve(gridSize))
+    var solutions: ArrayList<ArrayList<Int>> by remember {
+        mutableStateOf(arrayListOf())
     }
     var solutionShown by remember {
         mutableStateOf(0)
@@ -38,7 +40,12 @@ fun MainScreen() {
         Spacer(modifier = Modifier.height(20.dp))
         Heading()
         Spacer(Modifier.height(20.dp))
-        Grid(gridSize, solutions[solutionShown],solutionShown)
+
+        if (solutions.isNotEmpty())
+            Grid(gridSize, solutions[solutionShown], solutionShown)
+        else
+            Grid(gridSize, null, solutionShown)
+
         Spacer(Modifier.height(20.dp))
         Controller(gridSize, onGridChange = {
             gridSize = it
@@ -126,8 +133,7 @@ fun Controller(gridSize: Int, onGridChange: (Int) -> Unit, onRunClicked: () -> U
 
 
 @Composable
-fun Grid(gridSize: Int, solutions: ArrayList<Int>, solutionShown: Int) {
-
+fun Grid(gridSize: Int, solutions: ArrayList<Int>?, solutionShown: Int) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -142,10 +148,14 @@ fun Grid(gridSize: Int, solutions: ArrayList<Int>, solutionShown: Int) {
                 Column {
                     repeat(gridSize) { j ->
 
-                        if (solutions[i] - 1 == j)
-                            GridItem(Green)
-                        else
+                        if (solutions == null) {
                             GridItem(White)
+                        } else {
+                            if (solutions[i] - 1 == j)
+                                GridItem(Green)
+                            else
+                                GridItem(White)
+                        }
                     }
                 }
             }
@@ -154,12 +164,30 @@ fun Grid(gridSize: Int, solutions: ArrayList<Int>, solutionShown: Int) {
 
 
 
-        Text(text = "Solution Number ${solutionShown + 1}",color = Black,fontWeight = FontWeight.Bold)
+        solutions?.let {
+            Text(
+                text = "Solution Number ${solutionShown + 1}",
+                color = Black,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
 
 @Composable
 fun GridItem(color: Color) {
-    Box(modifier = Modifier.background(color).size(45.dp).border(1.dp, Green))
+    var active by remember {
+        mutableStateOf(false)
+    }
+    Box(modifier = Modifier.background(color).size(45.dp).border(1.dp, Green).pointerMoveFilter(
+        onEnter = {
+            active = true
+            false
+        },
+        onExit = {
+            active = false
+            false
+        }
+    ))
 }

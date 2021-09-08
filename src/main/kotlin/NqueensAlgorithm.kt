@@ -44,10 +44,165 @@ class NQueenSolution {
 
 
     companion object {
+
+
+        fun checkSolutions(board: ArrayList<ArrayList<Int>>, N: Int): List<Pair<Int, Int>>? {
+
+            var result: ArrayList<Pair<Int, Int>>? = arrayListOf()
+
+
+            board.forEachIndexed { i, iArray ->
+                iArray.forEachIndexed { j, jArray ->
+                    if (jArray == 1) {
+
+                        //horizontal
+
+                        for (k in 0 until N) {
+
+                            if (board[i][k] == 1) {
+                                if (j != k)
+                                    result?.add(Pair(i, j))
+                            }
+
+                        }
+
+                        //vertical
+                        for (k in 0 until N) {
+
+                            if (board[k][j] == 1) {
+                                if (i != k)
+                                    result?.add(Pair(i, j))
+                            }
+
+                        }
+
+
+                        //diagonal left
+                        var ii = i
+                        var jj = j
+                        while (ii >= 0 && jj >= 0) {
+
+                            if (board[ii][jj] == 1) {
+
+                                if (ii != i && jj != j) {
+                                    result?.add(Pair(ii, jj))
+                                }
+                            }
+                            ii--
+                            jj--
+                        }
+                        ii = i
+                        jj = j
+                        while (ii < N && jj < N) {
+                            if (board[ii][jj] == 1) {
+
+                                if (ii != i && jj != j) {
+                                    result?.add(Pair(ii, jj))
+                                }
+                            }
+                            ii++
+                            jj++
+                        }
+
+
+                        //diagonal right
+
+                        ii = i
+                        jj = j
+                        while (jj >= 0 && ii < N) {
+                            if (board[ii][jj] == 1) {
+                                if (ii != i && jj != j) {
+                                    result?.add(Pair(ii, jj))
+                                }
+
+                            }
+                            ii++
+                            jj--
+                        }
+
+                        ii = i
+                        jj = j
+                        while (ii >= 0 && jj < N) {
+                            if (board[ii][jj] == 1) {
+                                if (ii != i && jj != j) {
+                                    result?.add(Pair(ii, jj))
+                                }
+                            }
+                            ii--
+                            jj++
+                        }
+                    }
+                }
+            }
+
+
+            return result?.distinct()
+        }
+
+
+        fun isSafe(board: ArrayList<ArrayList<Int>>, col: Int, row: Int, N: Int): Boolean {
+
+            println("i $row , j $col ")
+            board.forEach {
+                it.forEach { num ->
+                    print("$num ,")
+                }
+                println()
+            }
+            println()
+            println()
+            /* Check this row on left side */
+
+            for (i in 0 until N) {
+                if (board[row][i] == 1)
+                    return false
+            }
+
+            for (i in 0 until N) {
+                if (board[i][col] == 1)
+                    return false
+            }
+
+
+            /* Check upper diagonal on left side */
+            var i = row
+            var j: Int = col
+            while (i >= 0 && j >= 0) {
+                if (board[i][j] == 1) return false
+                i--
+                j--
+            }
+            i = row
+            j = col
+            while (i < N && j < N) {
+                if (board[i][j] == 1) return false
+                i++
+                j++
+            }
+            /* Check lower diagonal on left side */
+            i = row
+            j = col
+            while (j >= 0 && i < N) {
+                if (board[i][j] == 1) return false
+                i++
+                j--
+            }
+
+            i = row
+            j = col
+
+            while (i >= 0 && j < N) {
+                if (board[i][j] == 1) return false
+                i--
+                j++
+            }
+            return true
+        }
+
         var result: ArrayList<ArrayList<Int>> = arrayListOf()
 
 
-        fun solve(n:Int): ArrayList<ArrayList<Int>> {
+        fun solve(n: Int): ArrayList<ArrayList<Int>> {
 
             val board = Array(n) { CharArray(n) }
             for (i in 0 until n) {

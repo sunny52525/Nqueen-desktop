@@ -1,6 +1,7 @@
 import NQueenSolution.Companion.toSolution
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -14,7 +15,6 @@ import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,14 +24,22 @@ import androidx.compose.ui.window.Dialog
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @Composable
-fun MainScreenInteractive(gotoSolution:()->Unit) {
+fun MainScreenInteractive(
+
+    gridSize: Int,
+    onGridChange: (Int) -> Unit,
+
+    gotoSolution: () -> Unit
+) {
+
+
     var grid: ArrayList<ArrayList<Int>> by remember {
-        mutableStateOf(Constants.empty)
+        mutableStateOf(Constants.getGrid(gridSize))
+    }
+    var results: ArrayList<ArrayList<Int>> by remember {
+        mutableStateOf(NQueenSolution.solve(gridSize))
     }
 
-    var results: ArrayList<ArrayList<Int>> by remember {
-        mutableStateOf(NQueenSolution.solve(8))
-    }
     var isDialog by remember {
         mutableStateOf(false)
     }
@@ -43,17 +51,20 @@ fun MainScreenInteractive(gotoSolution:()->Unit) {
         mutableStateOf(true)
     }
 
+    var dropDownExpanded by remember {
+        mutableStateOf(false)
+    }
 
 
 
-
-    Column {
+    Column(modifier = Modifier.animateContentSize()) {
         Spacer(modifier = Modifier.height(20.dp))
-        Heading()
+        Heading(gridSize)
+        Spacer(modifier = Modifier.height(20.dp))
 
 
         GridInteractive(
-            gridSize = 8, grid = grid,
+            gridSize = gridSize, grid = grid,
             onBlockClicked = { i: Int, j: Int ->
                 println(grid.size)
                 printGrid(grid)
@@ -61,9 +72,9 @@ fun MainScreenInteractive(gotoSolution:()->Unit) {
 
                 val grid2: ArrayList<ArrayList<Int>> = arrayListOf()
 
-                repeat(8) { ii ->
+                repeat(gridSize) { ii ->
                     val oneRow = arrayListOf<Int>()
-                    repeat(8) { jj ->
+                    repeat(gridSize) { jj ->
                         oneRow.add(grid[ii][jj])
                     }
                     grid2.add(oneRow)
@@ -74,7 +85,19 @@ fun MainScreenInteractive(gotoSolution:()->Unit) {
                 grid = grid2
 
             }, undo = { i, j ->
+                val grid2: ArrayList<ArrayList<Int>> = arrayListOf()
                 grid[j][i] = 0
+
+                repeat(gridSize) { ii ->
+                    val oneRow = arrayListOf<Int>()
+                    repeat(gridSize) { jj ->
+                        oneRow.add(grid[ii][jj])
+                    }
+                    grid2.add(oneRow)
+                }
+                grid.clear()
+
+                grid = grid2
             })
 
 
@@ -96,19 +119,31 @@ fun MainScreenInteractive(gotoSolution:()->Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(onClick = {
-                println(grid.size)
-                printGrid(grid)
 
-                val result = NQueenSolution.checkSolutions(grid, 8)
+                var count = 0
+                grid.forEach { iArray ->
+                    iArray.forEach { jArray ->
+                        count += jArray
+                    }
+
+                }
+                if (count != gridSize) {
+                    dialogMessage =
+                        "Please place ${gridSize - count} more Queens"
+
+                    isDialog = true
+                    return@Button
+                }
+                val result = NQueenSolution.checkSolutions(grid, gridSize)
                 println(
                     result
                 )
 
                 val grid2: ArrayList<ArrayList<Int>> = arrayListOf()
 
-                repeat(8) { ii ->
+                repeat(gridSize) { ii ->
                     val oneRow = arrayListOf<Int>()
-                    repeat(8) { jj ->
+                    repeat(gridSize) { jj ->
                         oneRow.add(grid[ii][jj])
                     }
                     grid2.add(oneRow)
@@ -120,11 +155,15 @@ fun MainScreenInteractive(gotoSolution:()->Unit) {
                     grid2[it.first][it.second] = 2
                 }
 
-                if (results.contains(grid.toSolution(8))) {
+                if (results.contains(grid.toSolution(gridSize))) {
                     dialogMessage = "Woo Hoo, You're correct"
                     isDialog = true
                 } else {
-                    dialogMessage = "Uh oh , Please try Again"
+
+
+                    dialogMessage =  "Uh oh , Please try Again"
+
+
                     isDialog = true
                 }
 
@@ -151,9 +190,9 @@ fun MainScreenInteractive(gotoSolution:()->Unit) {
             Button(onClick = {
                 println("grisSzie" + grid.size)
                 val grid2: ArrayList<ArrayList<Int>> = arrayListOf()
-                repeat(8) {
+                repeat(gridSize) {
                     val oneRow = arrayListOf<Int>()
-                    repeat(8) {
+                    repeat(gridSize) {
                         oneRow.add(0)
                     }
                     grid2.add(oneRow)
@@ -167,6 +206,19 @@ fun MainScreenInteractive(gotoSolution:()->Unit) {
             }, content = {
                 Text(text = "Reset")
             })
+
+            Spacer(modifier = Modifier.width(20.dp))
+
+            GridSelector(
+                dropDownExpanded = dropDownExpanded,
+                gridSize = gridSize,
+                onGridChange = {
+                    grid = Constants.getGrid(it)
+                    results = NQueenSolution.solve(it)
+                    onGridChange(it)
+                }, dropDownChange = {
+                    dropDownExpanded = it
+                })
         }
     }
 
@@ -190,19 +242,16 @@ fun GridInteractive(
     undo: (Int, Int) -> Unit
 
 ) {
-    print("**********")
-    printGrid(grid)
-    print("**********")
 
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Row(
-            modifier = Modifier.border(width = 1.dp, color = Color.Red)
+            modifier = Modifier.border(width = 1.dp, color = Color.Red).animateContentSize()
         ) {
             repeat(gridSize) { i ->
                 Column {
@@ -244,12 +293,6 @@ fun GridItemInteractive(
     blockColor: Color,
     onColorChange: (Color) -> Unit
 ) {
-    var active by remember {
-        mutableStateOf(false)
-    }
-
-    val density = LocalDensity.current
-
 
 
 
@@ -272,20 +315,14 @@ fun GridItemInteractive(
     ).size(45.dp).border(1.dp, Green)
         .pointerMoveFilter(
             onEnter = {
-                active = true
+
                 onColorChange(Color.Green)
-//                onColorChange(
-//                    if (NQueenSolution.isSafe(grid, i, j, gridSize)) {
-//                        Green
-//                    } else {
-//                        Color.Red
-//                    }
-//                )
+
                 false
             },
             onExit = {
-                active = false
-                onColorChange(White)
+
+            onColorChange(White)
                 false
             },
         ).combinedClickable(

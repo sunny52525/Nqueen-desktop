@@ -1,4 +1,3 @@
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -23,11 +22,13 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun MainScreen(gotoGame: () -> Unit) {
+fun MainScreen(
+    gridSize: Int,
+    onGridChange: (Int) -> Unit,
+    gotoGame: () -> Unit
+) {
 
-    var gridSize by remember {
-        mutableStateOf(8)
-    }
+
     var solutions: ArrayList<ArrayList<Int>> by remember {
         mutableStateOf(NQueenSolution.solve(gridSize))
     }
@@ -36,10 +37,9 @@ fun MainScreen(gotoGame: () -> Unit) {
     }
 
     Column(
-//        modifier = Modifier.animateContentSize()
     ) {
         Spacer(modifier = Modifier.height(20.dp))
-        Heading()
+        Heading(gridSize)
         Spacer(Modifier.height(20.dp))
 
         if (solutions.isNotEmpty())
@@ -50,7 +50,7 @@ fun MainScreen(gotoGame: () -> Unit) {
         Spacer(Modifier.height(20.dp))
         Controller(gridSize,
             onGridChange = {
-                gridSize = it
+                onGridChange(it)
                 solutions = NQueenSolution.solve(it)
                 solutionShown = 0
             }, onRunClicked = {
@@ -69,13 +69,20 @@ fun MainScreen(gotoGame: () -> Unit) {
 
 
 @Composable
-fun Heading() {
-    Box(
-        contentAlignment = Alignment.TopCenter,
-        modifier = Modifier.padding(16.dp).fillMaxWidth()
+fun Heading(gridSize: Int) {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text("NQueens Visualizer", color = Black)
+        Text("NQueens Visualizer", color = Black, fontWeight = FontWeight.SemiBold)
+        Text(
+            text = "Place $gridSize Queens on $gridSize x $gridSize board in such a way that no two queens can attack Each Other",
+            modifier = Modifier.animateContentSize()
+        )
+
+
     }
 }
 
@@ -92,56 +99,75 @@ fun Controller(
     }
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceAround,
+        horizontalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxWidth()
 
     ) {
         Button(onClick = onRunClicked, content = {
             Text(text = "Next Solution")
         })
-        Button(onClick = onResetClicked, content = {
-            Text(text = "Reset")
-        })
+        Spacer(modifier = Modifier.width(20.dp))
 
         Button(onClick = gotoGame, content = {
             Text(text = "Go to Game")
         })
 
-        Box(
-            content = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState())
-                ) {
-                    Button(
-                        onClick = {
-                            dropDownExpanded = true
-                        }, content = {
-                            Text(gridSize.toString(), color = White)
-                        }
-                    )
-                    DropdownMenu(expanded = dropDownExpanded, content = {
-                        Constants.grids.forEach {
-                            DropdownMenuItem(onClick = {
-                                onGridChange(it)
-                                dropDownExpanded = false
-                            }, content = {
-                                Text(
-                                    text = it.toString(),
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center,
-                                    color = Black
-                                )
-                            })
-                        }
-                    }, onDismissRequest = {
-                        dropDownExpanded = false
-                    })
-                }
+        Spacer(modifier = Modifier.width(20.dp))
+        Button(onClick = onResetClicked, content = {
+            Text(text = "Reset")
+        })
 
-            }
-        )
+        Spacer(modifier = Modifier.width(20.dp))
+
+        GridSelector(dropDownExpanded, gridSize, onGridChange) {
+            dropDownExpanded = it
+        }
 
     }
+}
+
+@Composable
+fun GridSelector(
+    dropDownExpanded: Boolean,
+    gridSize: Int,
+    onGridChange: (Int) -> Unit,
+    dropDownChange: (Boolean) -> Unit
+) {
+//    var dropDownExpanded1 = dropDownExpanded
+    Box(
+        content = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
+                Button(
+                    onClick = {
+
+                        dropDownChange(true)
+                    }, content = {
+                        Text(gridSize.toString(), color = White)
+                    }
+                )
+                DropdownMenu(expanded = dropDownExpanded, content = {
+                    Constants.grids.forEach {
+                        DropdownMenuItem(onClick = {
+                            onGridChange(it)
+                            dropDownChange(false)
+                        }, content = {
+                            Text(
+                                text = it.toString(),
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                color = Black
+                            )
+                        })
+                    }
+                }, onDismissRequest = {
+                    dropDownChange(false)
+                })
+            }
+
+        }
+    )
 }
 
 
@@ -190,19 +216,12 @@ fun Grid(gridSize: Int, solutions: ArrayList<Int>?, solutionShown: Int) {
 
 @Composable
 fun GridItem(color: Color) {
-    var active by remember {
-        mutableStateOf(false)
-    }
-    Box(modifier = Modifier.background(color).size(45.dp).border(1.dp, Green).pointerMoveFilter(
-        onEnter = {
-            active = true
-            false
-        },
-        onExit = {
-            active = false
-            false
-        }
-    )) {
+
+    Box(
+        modifier =
+        Modifier.background(color)
+            .size(45.dp).border(1.dp, Green)
+    ) {
 
         if (color == Green)
             Image(

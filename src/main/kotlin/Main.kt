@@ -1,11 +1,11 @@
 // Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.*
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 
@@ -19,19 +19,26 @@ fun App() {
         mutableStateOf(true)
     }
 
+    var gridSize by remember {
+        mutableStateOf(8)
+    }
     DesktopMaterialTheme {
 
 
-        Box {
-            AnimatedVisibility(gameVisible) {
+        Box (modifier = Modifier.animateContentSize()){
+            AnimatedVisibility(gameVisible,exit = fadeOut(),enter = fadeIn()) {
 
-                MainScreenInteractive() {
+                MainScreenInteractive(gridSize,onGridChange = {
+                    gridSize=it
+                }) {
                     gameVisible = false
                 }
             }
 
-            AnimatedVisibility(!gameVisible) {
-                MainScreen {
+            AnimatedVisibility(!gameVisible,exit = fadeOut(),enter = fadeIn()) {
+                MainScreen (gridSize,onGridChange = {
+                    gridSize=it
+                }){
                     gameVisible = true
                 }
             }
@@ -42,7 +49,7 @@ fun App() {
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
+    Window(onCloseRequest = ::exitApplication,title = "NQueens",) {
         App()
     }
 }

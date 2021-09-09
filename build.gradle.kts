@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "me.sunny"
-version = "1.0"
+version = "1.0.2"
 
 repositories {
     google()
@@ -34,7 +34,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "NQueen"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.2"
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
         }
     }

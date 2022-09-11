@@ -68,6 +68,11 @@ class NQueenSolution {
 
         }
 
+        fun getRandomNumber(min: Int, max: Int): Int {
+            val random = Random()
+            return random.nextInt(max - min + 1) + min
+        }
+
         fun checkSolutions(board: ArrayList<ArrayList<Int>>, N: Int): List<Pair<Int, Int>>? {
 
             var result: ArrayList<Pair<Int, Int>>? = arrayListOf()

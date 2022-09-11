@@ -34,7 +34,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "NQueen"
-            packageVersion = "1.0.2"
+            packageVersion = "1.0.3"
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
         }
     }

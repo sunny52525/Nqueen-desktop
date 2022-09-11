@@ -137,7 +137,7 @@ fun GridSelector(
     Box(
         content = {
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState())
+
             ) {
                 Button(
                     onClick = {

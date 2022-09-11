@@ -127,7 +127,7 @@ fun MainScreenInteractive(
                     }
 
                 }
-                if (count != gridSize) {
+                if (count < gridSize) {
                     dialogMessage =
                         "Please place ${gridSize - count} more Queens"
 
@@ -354,19 +354,3 @@ fun GridItemInteractive(
     }
 }
 
-
-@Composable
-fun Result(isVisible: Boolean, msg: String, onclose: () -> Unit) {
-
-    Dialog(visible = isVisible, content = {
-
-        Box(
-            modifier = Modifier.width(400.dp).height(300.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(msg, color = Black)
-        }
-    }, onCloseRequest = {
-        onclose()
-    })
-}
